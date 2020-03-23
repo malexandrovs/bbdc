@@ -1,0 +1,71 @@
+In der Bremen Big Data Challenge 2020 geht es darum, Handbewegungen beim Decken eines Tisches zu segmentieren und zu klassifizieren. Zur Verfügung stehen Informationen über die Bewegung im Raum über ein Motion Caputuring System sowie die an der Person aufgezeichnete Muskelaktivität der Arme.
+
+Der Trainingsdatensatz enthält Aufzeichnungen von 5 Proband*innen, von denen jeweils zwischen einer und sechs Aufnahmen vorliegen. Insgesamt sind 20 Aufnahmen für das Training verfügbar. Fünf Aufnahmen einer sechsten Person werden zur Auswertung verwendet.
+
+In den Daten gibt es folgende Aktivitäten der Hände, wobei das Präfix "la-" eine Aktivität der linken und das Präfix "ra-" eine Aktivität der rechten Hand beschreibt:
+
+la-object-pick, ra-object-pick -- Die Hand greift ein Objekt.
+
+la-object-carry, ra-object-carry -- Die Hand hält ein Objekt.
+
+la-object-place, ra-object-place -- Die Hand legt ein Objekt ab.
+
+la-object-switch-hands, ra-object-switch-hands -- Ein Objekt wird von einer in die andere Hand übergeben.
+
+la-object-orient, ra-object-orient -- Die Hand verschiebt ein liegendes Objekt.
+
+la-nothing, ra-nothing -- Die Hand führt keine der vorherigen Aktionen durch.
+
+Die Aktivitäten wurden manuell (von Menschen) anhand von Video-Aufnahmen annotiert. Die Videos stehen in der BBDC 2020 nicht zur Verfügung.
+
+
+
+Alle Daten liegen als CSV-Dateien (comma separated values) vor. Die ersten drei Zeilen der Trainingslabels (labels.train.csv) sehen wie folgt aus:
+
+s01t01.la,0.0,7.37,la-nothing
+s01t01.la,7.37,9.42,la-object-pick
+s01t01.la,9.42,9.43,la-nothing
+
+Jede Zeile entspricht einer Aktivität einer Hand. Die Spalten haben die folgenden Bedeutungen:
+
+Spalte 1: Eine Hand in einer Aufnahme einer Person. 'la' beschreibt die linke und 'ra' die rechte Hand. Das Beispiel zeigt drei Aktivitäten der linken Hand ('la') von Proband*in s01 in Aufnahme t01.
+Spalte 2: Startzeitpunkt der Aktivität (in Sekunden, inklusive)
+Spalte 3: Endzeitpunkt der Aktivität (in Sekunden, exklusive)
+Spalte 4: Aktivität der Hand.
+
+Dabei liegt für jede Aufnahme eine kontinuierliche Folge von Aktivitäten sowohl der rechten als auch der linken Hand vor. D.h. zu jedem Zeitpunkt gibt es genau ein Aktivitäts-Label sowohl für die linke als auch für die rechte Hand.
+
+Die Testdaten sollen das gleiche Format bekommen. Neben den Aktitäten müssen auch Start- und Endzeitpunkt der Aktivitäten gefunden werden. Deswegen kann es bei der BBDC 2020 keine Vorlage für die Datei geben, die eingereicht werden soll.
+In der Datei muss die Aufnahme korrekt bezeichnet werden, Start- und Endzeitpunkte müssen als Floats angegeben werden und die Aktivitäten müssen als eine der Aktivitäten (mit exakt übereinstimmender Schreibweise) bezeichnet werden. Alle Aktivitäten der linken Hand einer Aufnahme müssen vor den Aktivitäten der rechten Hand stehen.
+Die erste Aktivität muss bei Zeitpunkt 0 Sekunden beginnen. Es darf innerhalb einer Aufnahme keine Zeitpunkte ohne Aktivität geben und Aktivitäten dürfen sich nicht überlappen (d.h. der Endzeitpunkt einer Aktivität ist gleich der Startzeitpunkt der folgenden Aktivität). Eine beispielhafte gültige Abgabedatei liegt bei (example.csv).
+
+Für die Sensordaten liegen zu jeder Aufnahme zwei Dateien vor: Eine Datei mit den Muskelaktivitäten und eine Datei mit den Motion Capturing Daten.
+Die Muskelaktivitäten (gemessen mit Elektromyographie, EMG, bipolar abgeleitet) haben dieses Format (Beispiel emg/s01t01.emg.csv):
+
+ts,fa-o-t-r,fa-i-t-r,fa-i-b-r,fa-o-b-r,fa-o-t-l,fa-i-t-l,fa-i-b-l,fa-o-b-l
+0.0,32780.0,32745.0,32713.0,33655.0,33030.0,32859.0,32875.0,32615.0
+0.0016666666666666668,32714.0,32854.0,32641.0,33215.0,33318.0,32851.0,33315.0,32771.0
+0.0033333333333333335,32745.0,32834.0,32972.0,32436.0,33037.0,32677.0,33083.0,33799.0
+
+Die erste Spalte ist ein Timestamp (ts, in Sekunden), die anderen Spalten geben die Positionen der EMG-Elektroden wieder, die ringförmig am Unterarm angebracht sind:
+
+fa-o-t-r -- Außenseite oben des rechten Unterarms
+fa-i-t-r -- Innenseite oben des rechten Unterarms
+fa-i-b-r -- Innenseite unten des rechten Unterarms
+fa-o-b-r -- Außenseite unten des rechten Unterarms
+fa-o-t-l -- Außenseite oben des linken Unterarms
+fa-i-t-l -- Innenseite oben des linken Unterarms
+fa-i-b-l -- Innenseite unten des linken Unterarms
+fa-o-b-l -- Außenseite unten des linken Unterarms
+
+Die Abtastrate der EMG-Daten beträgt 600Hz.
+
+Die Motion Capturing Daten stellen Positionen und Winkel für ein aus den Sensordaten berechnetes virtuelles Skelett dar.
+Die erste Spalte ist ein Timestamp (ts, in Sekunden), dann folgen jeweils Winkel (als Quaternion, vier Werte) und Position (Drei Werte -- Position in Richtung X, Y, und Z) für die einzelnen Knochen. Es gibt 51 Knochen, somit hat die Datei 358 Spalten (51 * 7 + 1). Die Namen der Knochen sind in der ersten Zeile zu finden. Das Skelett hat eventuell Knochen, für die keine Marker an den Proband*innen angebracht waren, es ist also nicht unbedingt jeder Knochen nützlich. Aufgrund der Aufnahmetechnologie kann es vorkommen, dass zu manchen Zeitpunkten für manche Knochen keine Daten vorliegen.
+
+Die Abtastrate der Motion Capture Daten beträgt 150Hz.
+
+Jede Abgabe wird bewertet, indem sie auf einer Granularität von einer Millisekunde mit der Referenz verglichen wird. Ist die Abgabe kürzer oder länger als die Aufnahme, zählt die zu kurze bzw zu lange Dauer als falsch. Der finale Score ist:
+Gesamtdauer mit falsch angegebener Aktivität / Dauer der Aufnahme
+(Ein kleinerer Fehler ist besser)
+

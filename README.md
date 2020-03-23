@@ -4,7 +4,7 @@
 
 Clone the repository to your local machine
 
-'''
+'''shell
 git clone https://github.com/malexandrovs/bbdc
 '''
 
